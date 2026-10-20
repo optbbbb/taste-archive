@@ -1,0 +1,647 @@
+/* 사례형 — 빠른 커스텀 줄. 값을 바꾸고 저장 후 새로고침.
+   이 밖의 것(카드·이미지 줄·타일 삭제·추가·이동, 겹침·동작 변경)도 Claude에게 말하면 바꿔 준다. */
+:root {
+  --my-bg: #FFFFFF;        /* 바탕 색 (색 코드) — 정보 카드·커튼·이미지 판의 색. 히어로 뒤와 푸터는 늘 검정 */
+  --my-point: none;        /* 포인트 색 (색 코드 / none) — 처음으로 버튼 · 의뢰인 이름 · 푸터 화살표 */
+  --my-type: sans;         /* sans 고딕(기본) · serif 명조 · mono 고정폭 · hand 손글씨 */
+  --my-motion: 1;          /* 0 조용함 · 1 기본 · 2 강함 */
+  --my-density: 1;         /* 0 비움 · 1 기본 · 2 꽉 */
+  --my-image: native;      /* native 히어로만 흑백 · original 원본 · mono 흑백 · tint 색 덮기 */
+}
+
+/* ── 6주 커스텀 (학생 요청 2026-10-06): 뒤로가기 버튼 삭제(HTML) · 상단 GNB · 4·5·6주 상세 페이지 ── */
+:root { --gnb-h: 60px; }
+
+/* GNB — 화면 맨 위에 늘 붙어 있는 메뉴 */
+.gnb {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--gnb-h); padding: 0 clamp(16px, 3vw, 32px);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: var(--my-bg); color: #000;
+  font-size: 15px; font-weight: 600; word-break: keep-all;
+}
+.gnb a { color: inherit; text-decoration: none; }
+.gnb__menu { display: flex; gap: clamp(14px, 3vw, 40px); margin: 0; padding: 0; list-style: none; }
+.gnb__menu a { opacity: .45; transition: opacity .2s; }
+.gnb__menu a:hover, .gnb__menu a[aria-current="page"] { opacity: 1; }
+@media (max-width: 420px) { .gnb { font-size: 13px; } .gnb__menu { gap: 12px; } }
+
+/* GNB 높이만큼 정보 카드와 앵커 위치를 내린다 */
+.cs-over .cs-intro { padding-top: calc(var(--gnb-h) + 12px); }
+[id] { scroll-margin-top: calc(var(--gnb-h) + 10px); }
+
+/* 4주 작업 타일 — 누르면 원본 파일이 열리고, 아래에 작업 이름이 붙는다 */
+.cs-tile > a { display: block; width: 100%; height: 100%; color: inherit; text-decoration: none; }
+.cs-tile figcaption {
+  position: absolute; left: 0; bottom: 0; z-index: 3;
+  padding: 6px 10px; background: var(--my-bg); color: #000;
+  font-size: 13px; line-height: 1.35; pointer-events: none;
+}
+.cs-tag a { color: inherit; text-decoration: none; }
+
+/* ── 7주 커스텀 (학생 요청 2026-10-20) ──
+   ① 페이지 위 정보 카드: 여백만 크게 보여서 → 카드를 키워드(칩) 크기에 맞춰 줄임
+   ③ 다른 장(관련 타일): 위 구역과 붙어 보여서 → 위쪽에 거리를 둬 다른 구역임을 보이게 */
+.cs-intro { align-items: center; justify-content: center; }
+.cs-intro__card { width: fit-content; max-width: min(100%, var(--intro-max)); height: auto; flex: 0 0 auto; }
+@media (min-width: 768px) { .cs-intro__card { padding: 32px 40px; } }
+@media (min-width: 1024px) { .cs-intro__card { padding: 40px 48px; } }
+.cs-board > .cs-related { margin-top: clamp(96px, 14vw, 220px); }
+
+/* ── 7주 커스텀 · 스토리 가이드 (학생 요청 2026-10-20) ──
+   "메인에서 들어가 장을 고르면 안에서 이야기가 이어지고, 100%에서 꽉 차기보다 여백이 있되 가이드는 공통"
+   모든 장 페이지가 같은 순서를 따른다: 첫 화면(장 이름) → 정보 카드(장 번호·키워드·리드) → 장 여는 글 → 내용 줄 → 다음 장으로 → 다른 장 */
+:root {
+  --story-max: 1200px;                         /* 내용 줄 최대 폭 — 100%에서도 양옆 여백이 남게 */
+  --story-gap: clamp(20px, 3.2vw, 48px);       /* 줄 사이 간격 */
+  --story-break: clamp(72px, 12vw, 180px);     /* 장 여는 글 · 다음 장 앞뒤의 큰 여백 */
+  --story-col: 34em;                           /* 글 한 줄 최대 길이 */
+}
+.cs-board { gap: var(--story-gap); }
+.cs-row, .cs-related { max-width: var(--story-max); }
+
+/* 장 여는 글 · 다음 장 — 상자 없이 여백 위에 글만 */
+.cs-chapter { display: block; margin-block: var(--story-break); }
+.cs-chapter:first-child { margin-top: calc(var(--story-break) * .6); }
+.cs-chapter__text { max-width: var(--story-col); }
+.cs-chapter__no { margin: 0 0 1.2em; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; opacity: .55; }
+.cs-chapter__q { margin: 0 0 .7em; font-size: calc(var(--fs-lead-sm) * var(--k)); line-height: 1.3; font-weight: var(--w-semibold); word-break: keep-all; }
+.cs-chapter__text p { margin: 0; line-height: 1.7; word-break: keep-all; }
+.cs-chapter__text p + p { margin-top: .6em; }
+@media (min-width: 1024px) { .cs-chapter__q { font-size: calc(var(--fs-lead-md) * var(--k)); } }
+.cs-next { display: inline-block; margin-top: 1.4em; color: inherit; text-decoration: none; font-size: calc(var(--fs-lead-sm) * var(--k)); font-weight: var(--w-semibold); }
+.cs-next span { display: inline-block; transition: transform .3s; }
+.cs-next:hover span { transform: translateX(6px); }
+
+/* 내용 글 카드 — 이름(h3) · 무엇(첫 줄) · 왜(둘째 줄, 흐리게) 공통 */
+.cs-note__text h3 { margin: 0 0 .9em; }
+.cs-note__text .cs-why { opacity: .6; }
+.cs-row--pair .cs-note { align-items: flex-end; }
+.cs-board { padding-inline: clamp(16px, 7vw, 120px); }   /* 100%에서 양옆에 숨 쉴 여백 */
+
+/* ── 7주 커스텀 · 갤러리풍 (학생 요청 2026-10-20 "갤러리아 같이") ──
+   백화점 갤러리 카탈로그 같은 결: 명조 제목 · 자간 넓은 작은 대문자 라벨 · 따뜻한 아이보리 바탕 · 머리카락 선 · 사진은 천천히 확대
+   (특정 브랜드의 로고·문구·색 코드는 가져오지 않고 분위기만 옮김) */
+:root {
+  --lux-ivory: #F6F3EE;       /* 글 카드 바탕 */
+  --lux-ink: #111111;
+  --lux-mute: #6B665E;        /* 라벨·보조 글 (아이보리·흰 바탕 위 5:1 이상) */
+  --lux-line: rgba(17,17,17,.14);
+  --lux-serif: "Newsreader", "Noto Serif KR", serif;
+  --lux-label: 11px;
+}
+/* 제목 = 명조 */
+.cs-title__text, .cs-chapter__q, .cs-note__text h3, .cs-related__title, .cs-lead, .cs-next {
+  font-family: var(--lux-serif); font-weight: 400; letter-spacing: -.01em;
+}
+.cs-chapter__q { line-height: 1.35; }
+/* 라벨 = 작은 대문자 · 넓은 자간 */
+.cs-chapter__no, .cs-card__tags, .cs-credits, .gnb__menu {
+  font-size: var(--lux-label); letter-spacing: .22em; text-transform: uppercase; color: var(--lux-mute); opacity: 1;
+}
+.gnb { border-bottom: 1px solid var(--lux-line); }
+.gnb__home { font-family: var(--lux-serif); font-weight: 400; font-size: 17px; letter-spacing: .02em; }
+.gnb__menu a { opacity: 1; color: var(--lux-mute); }
+.gnb__menu a:hover, .gnb__menu a[aria-current="page"] { color: var(--lux-ink); }
+@media (max-width: 420px) { .gnb__menu { letter-spacing: .08em; } .gnb__home { font-size: 15px; } }
+/* 정보 카드 칩 = 선으로 두른 라벨 */
+.cs-tag { background: transparent; border: 1px solid var(--lux-line); font-size: var(--lux-label); letter-spacing: .16em; text-transform: uppercase; }
+.cs-intro__card { box-shadow: 0 1px 0 var(--lux-line); }
+/* 장 여는 글 — 라벨 아래 머리카락 선 */
+.cs-chapter:not(.cs-chapter--next) .cs-chapter__no { padding-bottom: 1.2em; border-bottom: 1px solid var(--lux-line); max-width: 12em; }
+/* 글 카드 = 아이보리 */
+.cs-note { background: var(--lux-ivory); }
+.cs-note__text .cs-why { opacity: 1; color: var(--lux-mute); }
+/* 사진 = 천천히 확대 */
+.cs-tile img { transition: transform 1.2s cubic-bezier(.2,.6,.2,1); }
+.cs-tile:hover img { transform: scale(1.04); }
+.cs-tile figcaption { font-size: var(--lux-label); letter-spacing: .12em; }
+
+/* 마지막 한마디 = 페이지 끝. 바탕이 아이보리에서 검정으로 내려가 검정 푸터와 이어진다 */
+.cs-board:has(> .cs-chapter--next:last-child) { padding-bottom: 0; }
+.cs-chapter--next {
+  max-width: none; width: auto;
+  margin: var(--story-break) calc(clamp(16px, 7vw, 120px) * -1) 0;   /* 판 양옆 여백을 걷어 화면 끝까지 */
+  padding: clamp(220px, 42vh, 460px) clamp(16px, 7vw, 120px) clamp(96px, 14vh, 160px);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--lux-ivory) 14%, #CFC6B8 30%, #2B2825 52%, #000 100%);
+  color: #fff;
+}
+.cs-chapter--next .cs-chapter__text { max-width: var(--story-max); margin: 0 auto; }
+.cs-chapter--next .cs-chapter__no { color: rgba(255,255,255,.7); }
+.cs-chapter--next .cs-next { font-size: clamp(28px, 4vw, 48px); }
+.cs-credits, .cs-credits em, .cs-credits strong { color: var(--lux-mute); opacity: 1; font-style: normal; }
+.cs-chapter:not(.cs-chapter--next) .cs-chapter__no { max-width: none; width: fit-content; padding-right: 3em; }
+.cs-note__text h3 { font-size: clamp(22px, 2.2vw, 30px); line-height: 1.2; margin-bottom: .8em; }
+
+/* ── 7주 커스텀 · 네 장 채우기 (학생 요청 2026-10-20 "마지막 네장 부분 내용 채워 줘") ──
+   타일 글(번호·장 이름·한 줄)을 마우스를 올리지 않아도 늘 보이게 · 홈 끝에 취향 축 답을 그라데이션 마무리로 */
+.cs-related .cs-card__cap { opacity: 1 !important; transform: none !important; }
+.cs-related .cs-card::after { content: ""; position: absolute; inset: 40% 0 0; background: linear-gradient(180deg, transparent, rgba(0,0,0,.72)); pointer-events: none; z-index: 1; }
+.cs-related .cs-card__cap { z-index: 2; }
+.cs-related .cs-card__tags { color: rgba(255,255,255,.75); }
+.cs-related .cs-card__name { font-family: var(--lux-serif); font-size: 1.15em; }
+.cs-related .cs-card__sub { display: block; margin-top: .35em; color: rgba(255,255,255,.85); }
+.cs-related .cs-card__arrow { color: rgba(255,255,255,.85); }
+.cs-axes { margin: 1.6em 0 0; display: grid; gap: .9em; }
+.cs-axes div { display: grid; grid-template-columns: 9em 1fr; gap: 1em; padding-bottom: .9em; border-bottom: 1px solid rgba(255,255,255,.18); }
+.cs-axes dt { font-size: var(--lux-label); letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.7); padding-top: .25em; }
+.cs-axes dd { margin: 0; font-family: var(--lux-serif); font-size: clamp(18px, 1.8vw, 22px); }
+.cs-chapter--end { padding-top: clamp(260px, 48vh, 520px); }
+@media (max-width: 480px) { .cs-axes div { grid-template-columns: 1fr; gap: .3em; } }
+.cs-chapter--end { background: linear-gradient(180deg, var(--bg) 0%, var(--lux-ivory) 10%, #CFC6B8 22%, #2B2825 40%, #000 100%); }
+
+/* ── 7주 커스텀 · 홈 네 장 = 메인 선택지 (학생 요청 2026-10-20) ──
+   홈에서는 네 장만 크게 · 처음으로 삭제 · 다른 페이지(가로로 흐르는 작은 타일)와 달리 사진이 주인공이고 따뜻한 그라데이션이 아래에서 올라온다 */
+.cs-related--home { margin-top: calc(var(--story-break) * .5) !important; max-width: none; }
+.cs-related--home .cs-related__head { padding-inline: 0; margin-bottom: 1.2em; }
+.cs-related--home .cs-related__title { font-size: var(--lux-label); letter-spacing: .22em; text-transform: uppercase; color: var(--lux-mute); }
+.cs-related--home .cs-related__list {
+  display: grid; grid-template-columns: 1fr; gap: var(--story-gap);
+  overflow: visible; margin: 0; padding: 0; scroll-snap-type: none;
+}
+.cs-related--home .cs-card { flex: none; width: auto; height: auto; min-height: 0; aspect-ratio: 4 / 5; }
+.cs-related--home .cs-card__clip, .cs-related--home .cs-card__clip img { width: 100%; height: 100%; }
+.cs-related--home .cs-card__clip img { object-fit: cover; transition: transform 1.4s cubic-bezier(.2,.6,.2,1); }
+.cs-related--home .cs-card:hover .cs-card__clip img { transform: scale(1.05); }
+.cs-related--home .cs-card::after {
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,16,12,.18) 0%, rgba(20,16,12,0) 28%, rgba(20,16,12,0) 50%, rgba(36,28,20,.55) 72%, rgba(14,11,8,.9) 100%);
+}
+.cs-related--home .cs-card__cap { left: 0; right: 0; bottom: 0; padding: clamp(20px, 2.4vw, 36px); }
+.cs-related--home .cs-card__tags { margin-bottom: .6em; }
+.cs-related--home .cs-card__tags li { background: transparent; padding: 0; color: rgba(255,255,255,.75); letter-spacing: .22em; }
+.cs-related--home .cs-card__name { font-size: clamp(30px, 3.4vw, 48px); line-height: 1.1; }
+.cs-related--home .cs-card__sub { font-size: 15px; margin-top: .6em; }
+@media (min-width: 768px) { .cs-related--home .cs-related__list { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .cs-related--home .cs-card { aspect-ratio: 16 / 11; } }
+@media (min-width: 1440px) {
+  .cs-related--home .cs-related__list { grid-template-columns: repeat(4, 1fr); }
+  .cs-related--home .cs-card { aspect-ratio: auto; height: min(78vh, 760px); }
+}
+
+/* ── 7주 커스텀 · 키워드 칩 (학생 요청 2026-10-20 "흰 네모에 그림자, 똑 똑 떨어져서 동동 구르는 느낌") ──
+   카드가 화면에 들어오면(chips.js가 .is-drop) 칩이 위에서 하나씩 떨어져 통 튀고, 그 뒤엔 제자리에서 천천히 동동 뜬다 */
+.cs-tag {
+  background: #fff; border: 0;
+  box-shadow: 0 1px 2px rgba(17,17,17,.06), 0 6px 14px -4px rgba(17,17,17,.18);
+}
+.js .cs-intro__card .cs-tag { opacity: 0; }
+.cs-intro__card.is-drop .cs-tag {
+  opacity: 1;
+  animation:
+    chip-drop .9s cubic-bezier(.3,.7,.4,1) both,
+    chip-bob 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 140ms), calc(.9s + var(--i, 0) * 140ms);
+}
+.cs-intro__card.is-drop .cs-tag:nth-child(even) { animation-duration: .9s, 3.8s; }
+@keyframes chip-drop {
+  0%   { opacity: 0; transform: translateY(-42px) rotate(-6deg); }
+  45%  { opacity: 1; transform: translateY(0) rotate(2deg); }
+  62%  { transform: translateY(-10px) rotate(-1.5deg); }
+  78%  { transform: translateY(0) rotate(.8deg); }
+  90%  { transform: translateY(-3px) rotate(0); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+@keyframes chip-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-3px) rotate(-.6deg); }
+}
+.cs-intro__card.is-drop .cs-tag:hover { box-shadow: 0 2px 4px rgba(17,17,17,.08), 0 12px 22px -6px rgba(17,17,17,.24); }
+@media (prefers-reduced-motion: reduce) {
+  .js .cs-intro__card .cs-tag { opacity: 1; }
+  .cs-intro__card.is-drop .cs-tag { animation: none; }
+}
+.m-0 .cs-intro__card .cs-tag { opacity: 1 !important; animation: none !important; }
+.gnb__home { white-space: nowrap; }
+@media (max-width: 420px) { .gnb { gap: 10px; } .gnb__home { font-size: 14px; } .gnb__menu { gap: 9px; letter-spacing: .04em; font-size: 10px; } }
+/* 타일에 마우스를 올려도 사진이 잘려 검은 띠가 생기지 않게 (글이 늘 보이므로 자리를 비울 필요 없음) */
+.cs-related .cs-card__clip, .cs-related .cs-card:hover .cs-card__clip, .cs-related .cs-card:focus-visible .cs-card__clip { clip-path: none !important; }
+
+/* ── 7주 커스텀 · 홈 다크 (학생 요청 2026-10-20 "홈은 그라데이션으로 쭉 내려서 배경 자체를 다크로") ──
+   홈(index.html, body.page-home)만: 따뜻한 먹색에서 검정으로 한 번에 내려가고, 그 끝이 검정 푸터와 이어진다. 장 페이지는 그대로 밝음 */
+body.page-home {
+  --bg: #1C1A17; --ink: #F2EEE7; --note-bg: #24211D;
+  --lux-mute: #A8A196; --lux-line: rgba(255,255,255,.14); --lux-ivory: #24211D;
+  background: #000;
+}
+.page-home .gnb { background: #1C1A17; color: var(--ink); border-bottom-color: var(--lux-line); }
+.page-home .gnb__menu a { color: var(--lux-mute); }
+.page-home .gnb__menu a:hover, .page-home .gnb__menu a[aria-current="page"] { color: var(--ink); }
+.page-home .cs-intro__card { background: #1C1A17; color: var(--ink); box-shadow: 0 1px 0 var(--lux-line); }
+.page-home .cs-tag { background: #2A2723; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 18px -6px rgba(0,0,0,.7); }
+.page-home .cs-tag a { color: var(--ink); }
+.page-home .cs-curtain { background: linear-gradient(to bottom, rgba(28,26,23,0), #1C1A17); }
+.page-home .cs-board {
+  background: linear-gradient(180deg, #1C1A17 0%, #14120F 55%, #070605 100%);
+  color: var(--ink);
+}
+.page-home .cs-chapter--end { background: linear-gradient(180deg, rgba(7,6,5,0) 0%, #000 70%); padding-top: clamp(140px, 22vh, 260px); }
+.page-home .cs-related--home .cs-card { box-shadow: 0 24px 48px -24px rgba(0,0,0,.8); }
+
+
+
+/* ── 7주 커스텀 · 장 넘김 (학생 요청 2026-10-20 "위아래 컬러 막은 빼고 좀 더 다른 걸로") ──
+   색 막 없이, 지금 페이지가 살짝 흐려지며 위로 떠오르듯 사라지고 → 다음 페이지가 흐림에서 또렷해지며 내려앉는다 (transition.js) */
+html.is-leaving body, html.is-arriving body, html.is-arrived body { background: var(--bg); }
+html.is-leaving .cs-stage, html.is-leaving .cs-footer {
+  opacity: 0; filter: blur(10px); transform: translateY(-24px);
+  transition: opacity .45s ease, filter .45s ease, transform .45s cubic-bezier(.4,0,.2,1);
+}
+html.is-leaving .gnb { opacity: .4; transition: opacity .45s ease; }
+html.is-arriving .cs-stage, html.is-arriving .cs-footer { opacity: 0; filter: blur(10px); transform: translateY(24px); }
+html.is-arrived .cs-stage, html.is-arrived .cs-footer {
+  transition: opacity .8s ease, filter .8s ease, transform 1s cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.is-leaving .cs-stage, html.is-leaving .cs-footer, html.is-arriving .cs-stage, html.is-arriving .cs-footer { opacity: 1; filter: none; transform: none; transition: none; }
+}
+
+/* ── 7주 커스텀 · 정보 카드 고정 해제 (학생 요청 2026-10-20 "카드가 스크롤하면서 따라오고 아래도 같이 움직여 자연스럽지 못함") ──
+   원래는 카드가 화면에 붙어 있다가(sticky) 빈 커튼(화면 한 장 높이)이 그 위를 덮는 구조였다.
+   → 카드는 첫 화면 사진 아래쪽에 반쯤 걸쳐 놓이고 페이지와 함께 그대로 스크롤된다. 빈 커튼은 없앤다 */
+.cs-intro {
+  position: relative; top: auto; z-index: 3;
+  min-height: 0; display: block;
+  margin-top: -16vh; margin-top: -16svh;
+  padding: 0 clamp(16px, 7vw, 120px) !important;
+  background: linear-gradient(to bottom, transparent 0, transparent 50%, var(--bg) 50%);
+}
+.cs-curtain { display: none; }
+.cs-intro__card { width: min(100%, 980px); max-width: none; margin: 0 auto; }
+.cs-lead { word-break: keep-all; }
+.cs-board { padding-top: clamp(24px, 4vw, 48px); }
+
+/* ── 7주 커스텀 · 첫 화면 흰 글자 삭제 (학생 요청 2026-10-20 "사진 위에 뜨는 흰색 글자 삭제") ──
+   화면에서는 지우고, 화면 낭독기와 검색이 읽는 페이지 제목(h1)으로만 남긴다 */
+.cs-title {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ── 7주 커스텀 · 첫 화면 → 본문 이음새 (학생 요청 2026-10-20, 물건 페이지 캡처 "넘어갈 때 자연스럽지 않음") ──
+   ① 첫 화면 사진도 고정(sticky)을 풀어 페이지와 같이 올라간다(사진이 멈춘 채 흰 판이 덮던 끊김 제거)
+   ② 사진 아래 절반이 바탕색으로 녹아들어 경계선이 없다
+   ③ 키워드 카드는 상자·선 없이 본문과 같은 왼쪽 줄에 놓인다 */
+.cs-hero { position: relative; top: auto; }
+.cs-hero::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60%; z-index: 2; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 45%, var(--bg) 100%);
+}
+.cs-intro { background: none; padding-inline: clamp(16px, 7vw, 120px) !important; }
+.cs-intro__card, .page-home .cs-intro__card {
+  width: auto; max-width: var(--story-max); margin: 0 auto;
+  background: transparent; box-shadow: none; padding: 0 0 clamp(8px, 2vw, 24px);
+}
+.cs-board > .cs-chapter:first-child { margin-top: clamp(40px, 6vw, 96px); }
+/* 학생 요청 2026-10-20 "검은색 줄 삭제" — 장 라벨(CHAPTER 0N — …) 아래 선 없앰 */
+.cs-chapter:not(.cs-chapter--next) .cs-chapter__no { border-bottom: 0; padding-bottom: 0; }
+/* 학생 캡처 2026-10-20 "검은색 오류" — 카드가 첫 화면보다 길면 그 아래로 몸통의 검정(무대색)이 드러났다 → 사진 끝선 아래는 바탕색으로 */
+body { background: var(--bg); }
+.cs-intro { background: linear-gradient(to bottom, transparent 0, transparent 16vh, var(--bg) 16vh) !important; }
+@supports (height: 1svh) { .cs-intro { background: linear-gradient(to bottom, transparent 0, transparent 16svh, var(--bg) 16svh) !important; } }
+/* 학생 요청 2026-10-20 "선 하나 넣고 아래로 여백 조금 더" — 키워드 카드(리드 문장) 아래에 가는 선, 그 아래 여백을 넓혀 장 여는 글과 띄운다 */
+.cs-intro__card, .page-home .cs-intro__card { padding-bottom: clamp(28px, 4vw, 56px); border-bottom: 1px solid var(--lux-line); }
+.cs-board > .cs-chapter:first-child { margin-top: clamp(64px, 9vw, 140px); }
+
+/* ── 7주 커스텀 · 홈 짧게 (학생 요청 2026-10-20 캡처 셋 "1번 아래에 2번, 그다음 3번 — 자연스럽게 짧게") ──
+   ① 첫 화면 + 메뉴 칩 → ② 네 장 바로 이어서 → ③ 기준. 사이의 큰 빈 공간을 걷어낸다 */
+.page-home .cs-board { padding-top: 0; }
+.page-home .cs-board > .cs-related--home { margin-top: clamp(32px, 4vw, 56px) !important; }
+.page-home .cs-related--home .cs-related__head {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); margin: 0; padding: 0;
+}
+.page-home .cs-chapter--end {
+  margin-top: clamp(56px, 7vw, 112px);
+  padding-top: clamp(64px, 10vh, 120px); padding-bottom: clamp(64px, 10vh, 120px);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, #000 100%);
+}
+
+/* ── 7주 커스텀 · 장 여는 글 여백 더 (학생 요청 2026-10-20 물건 페이지 캡처 "위아래로 여백 더") ── */
+.cs-board > .cs-chapter:first-child { margin-top: clamp(96px, 13vw, 200px); margin-bottom: clamp(96px, 13vw, 200px); }
+
+/* ── 7주 커스텀 · 장 타일 번호 (학생 요청 2026-10-20 "숫자 네모 삭제, 숫자 타이포로 오른쪽 위") ── */
+.cs-related .cs-card__cap { top: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.cs-related .cs-card__tags {
+  position: absolute; top: clamp(14px, 1.6vw, 24px); right: clamp(16px, 1.8vw, 28px);
+  height: auto; margin: 0; overflow: visible;
+}
+.cs-related .cs-card__tags li, .cs-related--home .cs-card__tags li {
+  height: auto; padding: 0; background: none; border-radius: 0;
+  font-family: var(--lux-serif); font-weight: 300; font-size: clamp(26px, 2.6vw, 44px); line-height: 1; letter-spacing: -.02em;
+  color: rgba(255,255,255,.92); text-transform: none;
+}
+.cs-related .cs-card::before {   /* 오른쪽 위 숫자가 밝은 사진에서도 읽히게 위쪽을 살짝 어둡게 */
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 30%; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+}
+
+/* ── 7주 커스텀 · 홈 첫 화면을 메인답게 (학생 요청 2026-10-20 "메인은 메인처럼 꾸며 글이나 배치로") ──
+   흰 글자 숨김 규칙에서 홈 제목만 다시 꺼내, 왼쪽 아래에 큰 명조로 · 위에 작은 라벨 줄 · 아래 이름과 장 목록 · 오른쪽 아래 스크롤 안내 */
+.home-hero {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: calc(var(--gnb-h) + clamp(20px, 3vw, 40px)) clamp(16px, 7vw, 120px) calc(16vh + clamp(48px, 7vw, 96px));
+  color: #F2EEE7;
+}
+.home-hero__meta { margin: 0; display: flex; justify-content: space-between; font-size: var(--lux-label); letter-spacing: .28em; text-transform: uppercase; opacity: .8; }
+.page-home .cs-title.home-hero__title {
+  position: static !important; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip: auto; clip-path: none; white-space: normal;
+  align-self: end; text-align: left;
+}
+.home-hero__title .cs-title__text {
+  display: block; font-family: var(--lux-serif); font-weight: 300; letter-spacing: -.035em; line-height: .92;
+  font-size: clamp(64px, 11vw, 188px); color: #F2EEE7;
+}
+.home-hero__foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: clamp(16px, 2vw, 28px); padding-top: 14px; border-top: 1px solid rgba(242,238,231,.3); }
+.home-hero__foot p { margin: 0; font-size: 14px; letter-spacing: .02em; }
+.home-hero__count { font-size: var(--lux-label) !important; letter-spacing: .22em !important; text-transform: uppercase; opacity: .75; }
+.home-hero__scroll {
+  pointer-events: auto; position: absolute; right: clamp(16px, 7vw, 120px); bottom: calc(16vh + 12px);
+  color: #F2EEE7; text-decoration: none; font-size: var(--lux-label); letter-spacing: .28em; text-transform: uppercase; opacity: .7;
+}
+.home-hero__scroll span { display: inline-block; margin-left: .4em; animation: chip-bob 2.4s ease-in-out infinite; }
+@media (max-width: 600px) { .home-hero__scroll { display: none; } .home-hero__foot { flex-direction: column; } }
+.page-home .cs-title.home-hero__title { display: block !important; justify-self: stretch; inset: auto !important; transform: none !important; }
+.home-hero__title .cs-title__text { text-align: left; margin: 0; width: auto; }
+.home-hero { padding-left: max(clamp(16px, 7vw, 120px), calc((100% - var(--story-max)) / 2)); padding-right: max(clamp(16px, 7vw, 120px), calc((100% - var(--story-max)) / 2)); }
+.home-hero__scroll { right: max(clamp(16px, 7vw, 120px), calc((100% - var(--story-max)) / 2)); }
+.cs-hero::after { height: var(--hero-fade, 60%); }
+/* 학생 요청 2026-10-20 "처음으로 버튼 네모 삭제하고 검정 글자로" */
+.cs-home, .cs-related__head .cs-home {
+  background: none !important; color: #111 !important; width: auto !important; height: auto !important; padding: 0 !important;
+  border-radius: 0; font-family: var(--lux-serif); font-weight: 400; font-size: 17px; letter-spacing: .01em;
+}
+.cs-home::after { content: " ↑"; }
+.cs-home:hover { opacity: .6; }
+/* 밝은 사진(모래시계·하늘) 위에서도 타일 번호가 보이게 */
+.cs-related .cs-card__tags li { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+html { scroll-behavior: smooth; } @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+/* 학생 캡처 2026-10-20 "메인 여백 좀 줘야 함 위" — 큰 제목이 위 라벨 줄(TASTE ARCHIVE)에 닿던 것: 위 여백을 늘리고 제목 크기를 화면 높이에도 맞춰 줄인다 */
+.home-hero { padding-top: calc(var(--gnb-h) + clamp(40px, 7vh, 88px)); row-gap: clamp(28px, 5vh, 64px); }
+.home-hero__title .cs-title__text { font-size: clamp(52px, min(10vw, 15vh), 176px); }
+
+/* ── 7주 커스텀 · 사람 페이지 오각형 (학생 요청 2026-10-20 "아버지 진짜 오각형 재능충이세요 + 옆에 꽉 찬 오각형 둥둥") ──
+   다섯 칸이 모두 끝까지 찬 능력치 그래프 모양. 문장 옆에서 천천히 떠다니며 살짝 돈다 */
+.penta { display: inline-block; vertical-align: -.12em; margin-left: .35em; font-size: 1.25em; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); animation: penta-float 4.2s ease-in-out infinite; }
+.penta svg { display: block; overflow: visible; }
+.penta__fill { fill: #111; }
+.penta__grid { fill: none; stroke: rgba(255,255,255,.55); stroke-width: 1.4; }
+@keyframes penta-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-.18em) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) { .penta { animation: none; } }
+.penta { font-size: 2.1em; vertical-align: -.32em; margin-left: .3em; }
+/* 오각형 2차 (학생 요청 2026-10-20 "조금 빈 자리도 주고 각 끝에 기준도 써 줘")
+   바깥 테두리는 100% 자리, 검정 채움은 다섯 기준마다 82~100% — 빈 자리가 조금 보인다. 기준 이름은 5주 기록에서(귀여움·미소·케미·끈기·유일함)
+   문장 옆 줄 안이 아니라 카드 오른쪽 위, 사진 위에 크게 떠 있다 */
+.cs-intro__card:has(.penta) { position: relative; }
+.cs-intro__card .penta {
+  position: absolute; right: clamp(0px, 2vw, 40px); top: clamp(-180px, -12vw, -60px);
+  margin: 0; font-size: clamp(170px, 20vw, 300px); vertical-align: 0;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,.28));
+}
+.penta__outer { fill: rgba(255,255,255,.55); stroke: #111; stroke-width: 1.2; }
+.penta__fill { fill: #111; }
+.penta__grid { fill: none; stroke: rgba(17,17,17,.35); stroke-width: .8; }
+.penta__spoke { fill: none; stroke: rgba(255,255,255,.6); stroke-width: .9; }
+.penta text { font-family: var(--f-sans); font-size: 10px; font-weight: 600; letter-spacing: .02em; fill: #111; paint-order: stroke; stroke: rgba(255,255,255,.85); stroke-width: 3px; stroke-linejoin: round; }
+@media (max-width: 600px) { .cs-intro__card .penta { position: relative; right: auto; top: auto; display: block; margin: 12px 0 0 auto; font-size: 200px; } }
+/* 오각형 3차 (학생 요청 2026-10-20 "뒤 흰색 테두리 삭제, 선 얇게, 안쪽 면 투명도 60") */
+.penta__outer { fill: none; stroke: #111; stroke-width: .6; }
+.penta__grid { stroke: rgba(17,17,17,.3); stroke-width: .45; }
+.penta__spoke { stroke: rgba(255,255,255,.55); stroke-width: .45; }
+.penta__fill { fill: #111; fill-opacity: .6; }
+/* 학생 요청 2026-10-20 "글자 흰 테두리도 삭제" */
+.penta text { stroke: none; }
+/* 학생 요청 2026-10-20 "글자 폰트 세리프" — 오각형 기준 글자를 명조로 */
+.penta text { font-family: var(--lux-serif); font-weight: 400; font-size: 11px; letter-spacing: 0; }
+
+/* ── 7주 커스텀 · 마지막 결론 = 인용구 (학생 요청 2026-10-20 "인용구처럼 + 옆에 사진 하나 띄우고, 누르면 그 사진으로") ── */
+.cs-quote { display: flex !important; align-items: center; justify-content: space-between; gap: clamp(24px, 5vw, 80px); }
+.cs-quote__body { margin: 0; max-width: 34em; }
+.cs-quote__text { margin: 0; position: relative; padding-left: clamp(36px, 4vw, 64px); }
+.cs-quote__text::before {
+  content: "\201C"; position: absolute; left: 0; top: -.18em;
+  font-family: var(--lux-serif); font-size: clamp(72px, 8vw, 128px); line-height: 1; color: rgba(17,17,17,.18);
+}
+.cs-quote__text p {
+  margin: 0; font-family: var(--lux-serif); font-weight: 400; font-style: italic; letter-spacing: -.01em;
+  font-size: clamp(30px, 4.2vw, 60px); line-height: 1.2; word-break: keep-all;
+}
+.cs-quote__text p::after { content: "\201D"; color: rgba(17,17,17,.25); margin-left: .05em; }
+.cs-quote .cs-chapter__no { display: block; margin-left: clamp(36px, 4vw, 64px); }
+.cs-quote__pic {
+  flex: 0 0 auto; display: block; width: clamp(110px, 12vw, 180px); aspect-ratio: 4 / 5; overflow: hidden;
+  background: #fff; padding: 8px 8px 26px;   /* 폴라로이드 한 장 */
+  box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 18px 34px -12px rgba(0,0,0,.35);
+  transform: rotate(4deg); animation: pic-float 5s ease-in-out infinite;
+  transition: box-shadow .3s;
+}
+.cs-quote__pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cs-quote__pic:hover { box-shadow: 0 4px 8px rgba(0,0,0,.1), 0 26px 44px -14px rgba(0,0,0,.45); }
+@keyframes pic-float { 0%,100% { transform: rotate(4deg) translateY(0); } 50% { transform: rotate(2deg) translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .cs-quote__pic { animation: none; } }
+@media (max-width: 600px) { .cs-quote { flex-direction: column; align-items: flex-start; } .cs-quote__pic { align-self: flex-end; } }
+/* 학생 요청 2026-10-20 "인용구 좀 기니까 줄이고 한 줄로" */
+.cs-quote__text p { font-size: clamp(22px, 2.6vw, 38px); white-space: nowrap; }
+.cs-quote__text::before { font-size: clamp(52px, 5vw, 80px); top: -.22em; }
+@media (max-width: 420px) { .cs-quote__text p { white-space: normal; } }
+
+/* ── 7주 커스텀 · 다음 장 사진 합성 (학생 요청 2026-10-20 "마지막 그라데이션에 다음 장 메인 사진을 자연스럽게 합성해 연결되게") ──
+   끝 구역 뒤에 다음 장 첫 화면 사진(같은 흑백 처리)을 깔고, 위는 바탕색에서 서서히 사진이 드러나고 아래는 어두워져 푸터로 이어진다.
+   누르면 그 사진이 첫 화면인 다음 장이 열려, 끝 장면과 다음 첫 장면이 이어진다 */
+.cs-chapter--next { position: relative; isolation: isolate; background: none !important; overflow: hidden; }
+.cs-chapter--next::before {
+  content: ""; position: absolute; inset: 0; z-index: -2;
+  background: var(--next-img) var(--next-pos, 50% 50%) / cover no-repeat;
+  filter: grayscale(1) contrast(1.08);
+}
+.cs-chapter--next::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg,
+    var(--bg) 0%, var(--bg) 6%,
+    color-mix(in srgb, var(--bg) 55%, transparent) 22%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.55) 62%, rgba(0,0,0,.9) 100%);
+}
+/* 학생 요청 2026-10-20 — 홈: 이름 줄 삭제, Scroll을 키워드 칩과 같은 줄 오른쪽 끝에 */
+.page-home .cs-intro__card { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+.page-home .cs-intro__card .cs-tags { flex: 1 1 auto; }
+.home-scroll {
+  flex: 0 0 auto; color: var(--ink); text-decoration: none; opacity: .7;
+  font-size: var(--lux-label); letter-spacing: .28em; text-transform: uppercase;
+}
+.home-scroll:hover { opacity: 1; }
+.home-scroll span { display: inline-block; margin-left: .4em; animation: chip-bob 2.4s ease-in-out infinite; }
+.home-hero__foot { justify-content: flex-end; }
+@media (max-width: 600px) { .home-scroll { display: none; } }
+.page-home .cs-intro__card { flex-direction: row !important; flex-wrap: nowrap; }
+
+/* ── 7주 커스텀 · 사진 판 간격 통일 (학생 캡처 2026-10-20 공간 페이지 "정렬 안 맞다, 여백 일정하게") ──
+   줄 안 간격과 줄 사이 간격을 하나로(--tile-gap). 셋 줄의 긴 사진은 왼쪽 두 장 높이에 정확히 맞춘다 */
+:root { --tile-gap: clamp(10px, 1.2vw, 18px); }
+.cs-board { gap: var(--tile-gap); }
+.cs-row { gap: var(--tile-gap); }
+.cs-row--trio .cs-tile--tall { aspect-ratio: auto !important; height: 100%; }
+.cs-row--trio .cs-tile--tall img, .cs-row--trio .cs-tile--tall > a { position: absolute; inset: 0; width: 100%; height: 100%; }
+@media (max-width: 767px) { .cs-row--trio .cs-tile--tall { aspect-ratio: 4 / 5 !important; height: auto; } }
+
+/* ── 7주 커스텀 · 타일 번호 (학생 요청 2026-10-20 "글자 더 얇게, 조금 투명하게, 검정") ── */
+.cs-related .cs-card::before { display: none; }
+.cs-related .cs-card__tags li, .cs-related--home .cs-card__tags li {
+  color: #000; opacity: .5; font-weight: 200; text-shadow: none;
+}
+
+/* ── 7주 커스텀 · 홈 마지막 글 (학생 요청 2026-10-20 "기준 부분 100%로 볼 때 가득 차게, 글을 이어지게, 다 보고 감동 있게") ──
+   화면 한 장을 꽉 채우고(100svh), 목록 대신 이어 읽는 글. 화면에 들어오면 한 줄씩 차례로 떠오르고, 마지막 기준 문장이 크게 남는다 */
+.page-home .cs-finale {
+  min-height: 100vh; min-height: 100svh;
+  display: flex !important; align-items: center;
+  padding-top: clamp(80px, 12vh, 140px) !important; padding-bottom: clamp(80px, 12vh, 140px) !important;
+}
+.cs-finale__text { width: 100%; max-width: var(--story-max); margin: 0 auto; }
+.cs-finale__title { margin: 0 0 clamp(28px, 5vh, 56px); font-family: var(--lux-serif); font-weight: 400; font-size: clamp(30px, 3.6vw, 52px); line-height: 1.2; }
+.cs-finale__line { margin: 0 0 .7em; max-width: 30em; font-family: var(--lux-serif); font-weight: 300; font-size: clamp(18px, 1.7vw, 24px); line-height: 1.7; color: rgba(242,238,231,.82); word-break: keep-all; }
+.cs-finale__line em { font-style: normal; color: #F2EEE7; border-bottom: 1px solid rgba(242,238,231,.35); }
+.cs-finale__pre { margin-top: clamp(28px, 5vh, 56px); }
+.cs-finale__key { max-width: none; font-weight: 400; font-size: clamp(30px, 4.4vw, 68px); line-height: 1.2; letter-spacing: -.02em; color: #F2EEE7; }
+.cs-finale__sign { margin-top: clamp(32px, 6vh, 72px); font-family: var(--f-sans); font-size: var(--lux-label); letter-spacing: .28em; text-transform: uppercase; color: rgba(242,238,231,.55); }
+.js .cs-finale__line { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+.cs-finale.is-read .cs-finale__line {
+  opacity: 1; transform: none; filter: none;
+  transition: opacity 1.1s ease, transform 1.1s cubic-bezier(.2,.7,.2,1), filter 1.1s ease;
+  transition-delay: calc(var(--i, 0) * 420ms);
+}
+.cs-finale.is-read .cs-finale__key { transition-duration: 1.6s; }
+@media (prefers-reduced-motion: reduce) { .js .cs-finale__line { opacity: 1; transform: none; filter: none; } }
+.cs-finale__key { font-size: clamp(28px, 3.4vw, 58px); }
+@media (min-width: 900px) { .cs-finale__key { white-space: nowrap; } }
+.page-home .cs-finale { padding-top: clamp(56px, 8vh, 100px) !important; padding-bottom: clamp(56px, 8vh, 100px) !important; }
+.cs-finale__line { margin-bottom: .5em; }
+.cs-finale__pre { margin-top: clamp(20px, 4vh, 44px); }
+.cs-finale__sign { margin-top: clamp(24px, 4vh, 52px); }
+.cs-related .cs-card__tags li, .cs-related--home .cs-card__tags li { color: #fff; opacity: .85; }
+
+/* ── 7주 커스텀 · 홈 네 장 = 목차형 살펴보기 (학생 요청 2026-10-20 "타일이 부자연스러움, 살펴보기 란이니 다르게 구성") ──
+   큰 사진 카드 넷 대신, 책 목차처럼 한 줄에 한 장: 번호 · 장 이름 · 그 장의 질문 · 작은 사진 · 살펴보기.
+   마우스를 올리면 그 줄만 밝아지고 사진이 커지며 화살표가 나아간다 */
+.chapters { width: 100%; max-width: var(--story-max); margin: clamp(56px, 8vw, 120px) auto 0; color: var(--ink); }
+.chapters__title { margin: 0 0 clamp(20px, 3vw, 36px); font-family: var(--f-sans); font-weight: 400; font-size: var(--lux-label); letter-spacing: .28em; text-transform: uppercase; color: var(--lux-mute); }
+.chapters__list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--lux-line); }
+.chapters__list li { border-bottom: 1px solid var(--lux-line); }
+.chapter-row {
+  display: grid; align-items: center; gap: 12px clamp(16px, 3vw, 48px);
+  grid-template-columns: 3.2em minmax(9em, 1.1fr) 2fr auto auto;
+  padding: clamp(20px, 3vw, 36px) 0; color: inherit; text-decoration: none;
+  transition: opacity .4s ease;
+}
+.chapters__list:hover .chapter-row { opacity: .45; }
+.chapters__list .chapter-row:hover, .chapters__list .chapter-row:focus-visible { opacity: 1; }
+.chapter-row__no { font-family: var(--lux-serif); font-weight: 200; font-size: clamp(22px, 2vw, 30px); color: var(--lux-mute); }
+.chapter-row__name { font-family: var(--lux-serif); font-weight: 400; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; letter-spacing: -.02em; }
+.chapter-row__name span { display: block; margin-top: .45em; font-family: var(--f-sans); font-size: var(--lux-label); letter-spacing: .24em; text-transform: uppercase; color: var(--lux-mute); }
+.chapter-row__q { font-family: var(--lux-serif); font-weight: 300; font-size: clamp(16px, 1.3vw, 20px); line-height: 1.5; color: var(--lux-mute); word-break: keep-all; }
+.chapter-row__pic { width: clamp(84px, 9vw, 140px); aspect-ratio: 4 / 5; overflow: hidden; display: block; }
+.chapter-row__pic img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(1); transform: scale(1); transition: transform .9s cubic-bezier(.2,.7,.2,1), filter .6s ease; }
+.chapter-row:hover .chapter-row__pic img, .chapter-row:focus-visible .chapter-row__pic img { transform: scale(1.08); filter: grayscale(0); }
+.chapter-row__go { font-size: var(--lux-label); letter-spacing: .2em; white-space: nowrap; }
+.chapter-row__go span { display: inline-block; margin-left: .4em; transition: transform .4s ease; }
+.chapter-row:hover .chapter-row__go span { transform: translateX(8px); }
+@media (max-width: 767px) {
+  .chapter-row { grid-template-columns: 2.4em 1fr auto; grid-template-areas: "no name pic" "no q pic" "no go pic"; row-gap: 8px; }
+  .chapter-row__no { grid-area: no; align-self: start; }
+  .chapter-row__name { grid-area: name; }
+  .chapter-row__q { grid-area: q; }
+  .chapter-row__pic { grid-area: pic; width: 88px; }
+  .chapter-row__go { grid-area: go; }
+  .chapters__list:hover .chapter-row { opacity: 1; }
+}
+
+/* ── 7주 커스텀 · 작업 = 소개 페이지 (학생 요청 2026-10-20 "PDF에서 몇 가지 빼서 소개 페이지처럼 다르게 구성") ──
+   작업마다 한 블록: 왼쪽(또는 오른쪽) 글 칸 = 번호 · 제목 · 분야 · 기간/참여/도구/목표/결과물 · 소개 · 원본 보기,
+   반대쪽 = PDF에서 잘라 낸 대표 사진 + 보조 사진. 글 칸은 사진을 따라 내려오며 붙어 있다(sticky). 블록마다 좌우가 바뀐다 */
+.work {
+  width: 100%; max-width: var(--story-max); margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 88px); align-items: start;
+  padding: clamp(56px, 8vw, 120px) 0; border-top: 1px solid var(--lux-line);
+}
+.work--flip .work__info { order: 2; }
+.work__info { position: sticky; top: calc(var(--gnb-h) + 32px); }
+.work__no { margin: 0 0 1.4em; font-family: var(--lux-serif); font-weight: 200; font-size: clamp(28px, 2.6vw, 40px); color: var(--lux-mute); }
+.work__title { margin: 0; font-family: var(--lux-serif); font-weight: 400; font-size: clamp(28px, 3vw, 46px); line-height: 1.15; letter-spacing: -.02em; word-break: keep-all; }
+.work__cat { margin: .9em 0 0; font-size: var(--lux-label); letter-spacing: .22em; text-transform: uppercase; color: var(--lux-mute); }
+.work__lead { margin: 1.6em 0 0; font-family: var(--lux-serif); font-size: clamp(18px, 1.5vw, 22px); line-height: 1.45; word-break: keep-all; }
+.work__desc { margin: 1em 0 0; font-size: 15px; line-height: 1.75; color: #3A3732; word-break: keep-all; max-width: 32em; }
+.work__meta { margin: 1.8em 0 0; display: grid; gap: 0; border-top: 1px solid var(--lux-line); }
+.work__meta div { display: grid; grid-template-columns: 5em 1fr; gap: 1em; padding: .75em 0; border-bottom: 1px solid var(--lux-line); }
+.work__meta dt { font-size: var(--lux-label); letter-spacing: .18em; color: var(--lux-mute); padding-top: .2em; }
+.work__meta dd { margin: 0; font-size: 14px; line-height: 1.6; word-break: keep-all; }
+.work__link { display: inline-block; margin-top: 1.8em; color: var(--ink); text-decoration: none; font-family: var(--lux-serif); font-size: 16px; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+.work__link:hover { opacity: .6; }
+.work__media { display: grid; gap: var(--tile-gap); }
+.work__media img { display: block; width: 100%; height: auto; }
+.work__main { aspect-ratio: 4 / 5; object-fit: cover; }
+.work__sub { width: 78% !important; justify-self: end; box-shadow: 0 24px 48px -28px rgba(0,0,0,.35); margin-top: calc(var(--tile-gap) * -6); position: relative; }
+.work--flip .work__sub { justify-self: start; }
+@media (max-width: 767px) {
+  .work { grid-template-columns: 1fr; }
+  .work--flip .work__info { order: 0; }
+  .work__info { position: static; }
+  .work__sub { width: 86% !important; margin-top: calc(var(--tile-gap) * -3); }
+}
+
+/* ── 7주 커스텀 · 공간 첫 화면에 사막 색 (학생 요청 2026-10-20 "흑백에 사막 색 조금, 앞 페이지에서 넘어갈 때 조금 바뀌는 걸로") ──
+   사람 페이지 끝에서는 같은 나무 사진이 흑백으로 보이고, 공간 페이지에 도착하면 흑백에서 모래빛으로 천천히 물든다 */
+.page-spaces .cs-hero__img { animation: desert-warm 2.6s ease .5s both; }
+@keyframes desert-warm {
+  from { filter: grayscale(1) contrast(1.08); }
+  to   { filter: grayscale(.35) sepia(.38) saturate(1.25) hue-rotate(-6deg) contrast(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-spaces .cs-hero__img { animation: none; filter: grayscale(.35) sepia(.38) saturate(1.25) hue-rotate(-6deg) contrast(1.04); }
+}
+/* 학생 문장으로 바꾼 홈 마지막 글(2026-10-20) — 끝 문장이 길어져 한 줄 고정을 풀고 크기를 맞춤 */
+.cs-finale__key { white-space: normal !important; font-size: clamp(26px, 3vw, 48px); max-width: 22em; margin-top: clamp(24px, 4vh, 48px); }
+
+/* ── 7주 커스텀 · 3D 주사위 (학생 요청 2026-10-20 "오른쪽 아래에 주사위 3D로 하나 또르륵 굴러가게, 전부 보고 나서 생기게") ──
+   홈 마지막 글이 한 줄씩 다 떠오른 뒤(약 3초) 오른쪽 바깥에서 굴러 들어와 두어 번 통통 튀고 멈춘다 */
+.die3d {
+  --s: clamp(44px, 4.2vw, 64px);
+  position: absolute; right: clamp(24px, 8vw, 160px); bottom: clamp(40px, 9vh, 110px);
+  width: var(--s); height: var(--s); perspective: 700px; opacity: 0; pointer-events: none;
+  filter: drop-shadow(0 18px 14px rgba(0,0,0,.55));
+}
+.die3d__cube { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(-24deg) rotateY(32deg); }
+.die3d__f {
+  position: absolute; inset: 0; border-radius: 18%;
+  background-color: #F4F1EB; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), inset 0 -6px 10px rgba(0,0,0,.12);
+  --p: radial-gradient(circle, #111 0 46%, transparent 52%);
+  background-repeat: no-repeat; background-size: 22% 22%;
+}
+.die3d__f.f1 { transform: translateZ(calc(var(--s) / 2)); background-image: var(--p); background-position: 50% 50%; }
+.die3d__f.f6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); background-image: var(--p),var(--p),var(--p),var(--p),var(--p),var(--p); background-position: 18% 18%, 82% 18%, 18% 50%, 82% 50%, 18% 82%, 82% 82%; }
+.die3d__f.f2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p),var(--p); background-position: 18% 18%, 82% 82%; }
+.die3d__f.f5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p),var(--p),var(--p),var(--p),var(--p); background-position: 18% 18%, 82% 18%, 50% 50%, 18% 82%, 82% 82%; }
+.die3d__f.f3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p),var(--p),var(--p); background-position: 18% 18%, 50% 50%, 82% 82%; }
+.die3d__f.f4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p),var(--p),var(--p),var(--p); background-position: 18% 18%, 82% 18%, 18% 82%, 82% 82%; }
+.cs-finale.is-read .die3d { animation: die-in 2.2s cubic-bezier(.25,.7,.25,1) 3.1s forwards; }
+.cs-finale.is-read .die3d__cube { animation: die-roll 2.2s cubic-bezier(.25,.7,.25,1) 3.1s forwards; }
+@keyframes die-in {
+  0%   { opacity: 0; transform: translate(42vw, -30px); }
+  8%   { opacity: 1; }
+  45%  { transform: translate(14vw, 0); }
+  58%  { transform: translate(7vw, -18px); }
+  72%  { transform: translate(2.5vw, 0); }
+  84%  { transform: translate(.8vw, -5px); }
+  100% { opacity: 1; transform: translate(0, 0); }
+}
+@keyframes die-roll {
+  0%   { transform: rotateX(-24deg) rotateY(32deg) rotateZ(-900deg); }
+  100% { transform: rotateX(-24deg) rotateY(32deg) rotateZ(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-finale.is-read .die3d { animation: none; opacity: 1; }
+  .cs-finale.is-read .die3d__cube { animation: none; }
+}
+@media (max-width: 600px) { .die3d { right: 20px; bottom: 28px; } }
+.home-hero__foot { justify-content: space-between; } .home-hero__by { font-size: 15px !important; letter-spacing: .01em !important; }

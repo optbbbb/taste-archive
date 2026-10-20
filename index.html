@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chowon Archive — 나의 취향 아카이브</title>
+<meta property="og:title" content="Chowon Archive — 나의 취향 아카이브">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/space1_01.jpg">
+<script>document.documentElement.className += " js";try{if(sessionStorage.getItem("veil")==="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.className+=" is-arriving"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=IBM+Plex+Mono:wght@300;400;600&family=Nanum+Gothic+Coding:wght@400;700&family=Gaegu:wght@300;400;700&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="my-style.css">
+</head>
+<body class="page-home">
+<!-- GNB: 홈 · 4주 · 5주 · 6주 상세 페이지 (학생 요청) -->
+<nav class="gnb" aria-label="주 메뉴">
+  <a class="gnb__home" href="index.html" aria-current="page" lang="en">Chowon Archive</a>
+  <ul class="gnb__menu" lang="en">
+    <li><a href="index.html" aria-current="page">Home</a></li>
+    <li><a href="w04.html">Work</a></li>
+    <li><a href="w05.html">People</a></li>
+    <li><a href="w06.html">Spaces</a></li>
+    <li><a href="w07.html">Objects</a></li>
+  </ul>
+</nav>
+
+<main class="cs-stage">
+  <!-- ① 히어로: 6주 관점 한 문장(01_topic) + 공간 1의 01번 사진 -->
+  <section class="cs-hero" id="top">
+    <figure class="cs-hero__media"><img class="cs-hero__img" src="assets/space1_01.jpg" width="1600" height="2000" alt="3장 공간 Far Horizon 사진 1"></figure>
+    <!-- 홈 첫 화면 구성 (학생 요청 2026-10-20 "메인은 메인처럼 글이나 배치로") — 문구: 관점(01_topic) · 사이트 제목(title) · 장 수 -->
+    <div class="home-hero">
+      <p class="home-hero__meta" lang="en"><span>Taste Archive</span><span>2026</span></p>
+      <h1 class="cs-title home-hero__title"><span class="cs-title__text" lang="en">Left to<br>Chance</span></h1>
+      <div class="home-hero__foot">
+        <p class="home-hero__by">즐거운 경험을 만드는 디자이너, 임초원</p>
+        <p class="home-hero__count" lang="en">04 Chapters · Work, People, Spaces, Objects</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="cs-over">
+    <!-- ② 들어가는 말: 분야 칩 = 메뉴 다섯(영문 · 7주). 리드(나를 한 문장)·크레딧(4·5주 기준)은 기록 없음 -->
+    <section class="cs-intro" aria-label="아카이브 개요">
+      <div class="cs-intro__card">
+        <ul class="cs-tags" lang="en">
+          <li class="cs-tag"><a href="#criteria">Home</a></li>
+          <li class="cs-tag"><a href="w04.html">Work</a></li>
+          <li class="cs-tag"><a href="w05.html">People</a></li>
+          <li class="cs-tag"><a href="w06.html">Spaces</a></li>
+          <li class="cs-tag"><a href="w07.html">Objects</a></li>
+        </ul>
+        <a class="home-scroll" href="#chapters" lang="en">Scroll <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <div class="cs-curtain" aria-hidden="true"></div>
+
+    <div class="cs-board">
+      <!-- 네 장 살펴보기 = 목차형 (학생 요청 2026-10-20 "살펴보기 란이니 다르게 구성") — 줄마다 번호 · 장 이름 · 장 질문(각 장 여는 글) · 작은 사진 · 살펴보기 -->
+      <section class="chapters" id="chapters" aria-labelledby="chapters-title">
+        <h2 class="chapters__title" id="chapters-title"><span lang="en">Chapters</span> — 네 장 살펴보기</h2>
+        <ol class="chapters__list">
+          <li><a class="chapter-row" href="w04.html">
+            <span class="chapter-row__no">01</span>
+            <span class="chapter-row__name">작업 <span lang="en">Work</span></span>
+            <span class="chapter-row__q">만든 것에서 시작한다.</span>
+            <span class="chapter-row__pic"><img src="assets/w04_12.jpg" width="1200" height="1500" alt=""></span>
+            <span class="chapter-row__go">작업 살펴보기 <span aria-hidden="true">→</span></span>
+          </a></li>
+          <li><a class="chapter-row" href="w05.html">
+            <span class="chapter-row__no">02</span>
+            <span class="chapter-row__name">사람 <span lang="en">People</span></span>
+            <span class="chapter-row__q">나는 그 사람의 어떤 표현이나 태도에 끌릴까?</span>
+            <span class="chapter-row__pic"><img src="assets/w05_reason2_smile.jpg" width="3000" height="4000" alt=""></span>
+            <span class="chapter-row__go">사람 살펴보기 <span aria-hidden="true">→</span></span>
+          </a></li>
+          <li><a class="chapter-row" href="w06.html">
+            <span class="chapter-row__no">03</span>
+            <span class="chapter-row__name">공간 <span lang="en">Spaces</span></span>
+            <span class="chapter-row__q">어떤 빛·색·배치가 나를 머물게 할까?</span>
+            <span class="chapter-row__pic"><img src="assets/space3_01.jpg" width="1333" height="2000" alt=""></span>
+            <span class="chapter-row__go">공간 살펴보기 <span aria-hidden="true">→</span></span>
+          </a></li>
+          <li><a class="chapter-row" href="w07.html">
+            <span class="chapter-row__no">04</span>
+            <span class="chapter-row__name">물건 <span lang="en">Objects</span></span>
+            <span class="chapter-row__q">익숙한 물건 중 왜 이것을 계속 고를까?</span>
+            <span class="chapter-row__pic"><img src="assets/obj3_01.jpg" width="1600" height="1007" alt=""></span>
+            <span class="chapter-row__go">물건 살펴보기 <span aria-hidden="true">→</span></span>
+          </a></li>
+        </ol>
+      </section>
+      <!-- 마지막 한마디 · 기준 — 이어 읽는 글 (Claude 작성 · 재료 = 취향축.md 7주 답 원문 다섯 · 네 장 순서 · 관점 Left to Chance) -->
+      <section class="cs-row cs-chapter cs-chapter--next cs-chapter--end cs-finale" id="criteria" aria-labelledby="criteria-title">
+        <div class="cs-chapter__text cs-finale__text">
+          <p class="cs-chapter__no" lang="en">Criteria</p>
+          <h2 class="cs-finale__title" id="criteria-title">네 장을 지나 남는 것.</h2>
+          <p class="cs-finale__line">저는 없는 것에서 경험하는 사람에게 가장 즐거운 것을 만들어 주려고 노력합니다. 그런 제 작업은 제 아카이브 사진과도 이어져 있습니다.</p>
+          <p class="cs-finale__line">눈을 감아도 떠오르는, 빈 사막에서 피어오른 <em>사람에 대한 사랑</em>,</p>
+          <p class="cs-finale__line">그리고 <em>확률로 탄생하는 세상의 즐거움</em>.</p>
+          <p class="cs-finale__line cs-finale__key">저는 언제나 즐거운 삶을 공유하기 위해 활동합니다.</p>
+          <p class="cs-finale__line cs-finale__sign" lang="en">Left to Chance — Chowon Archive</p>
+          <!-- 7주 기준 한 줄: 회고 뒤 채움 -->
+        </div>
+        <!-- 다 읽고 나면 오른쪽 아래로 굴러 들어오는 3D 주사위 (학생 요청 2026-10-20) -->
+        <div class="die3d" aria-hidden="true"><div class="die3d__cube"><i class="die3d__f f1"></i><i class="die3d__f f2"></i><i class="die3d__f f3"></i><i class="die3d__f f4"></i><i class="die3d__f f5"></i><i class="die3d__f f6"></i></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="cs-footer">
+  <p class="cs-copy">©2026 <strong>Yim Chowon</strong></p>
+</footer>
+
+<script src="sig.js"></script>
+<script src="chips.js"></script>
+<script src="transition.js"></script>
+</body>
+</html>
