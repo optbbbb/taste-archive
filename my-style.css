@@ -645,3 +645,6 @@ html { scroll-behavior: smooth; } @media (prefers-reduced-motion: reduce) { html
 }
 @media (max-width: 600px) { .die3d { right: 20px; bottom: 28px; } }
 .home-hero__foot { justify-content: space-between; } .home-hero__by { font-size: 15px !important; letter-spacing: .01em !important; }
+/* 7주 기준 한 줄 (회고 4번 · 2026-10-20) — 홈 마지막 글 끝, 서명 위 */
+.cs-finale__criterion { margin-top: clamp(20px, 3vh, 36px); padding-top: 14px; border-top: 1px solid rgba(242,238,231,.2); font-size: clamp(15px, 1.2vw, 17px); color: rgba(242,238,231,.75); max-width: none; }
+.cs-finale__criterion span { margin-right: 1em; font-family: var(--f-sans); font-size: var(--lux-label); letter-spacing: .24em; text-transform: uppercase; color: rgba(242,238,231,.5); }
